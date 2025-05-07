@@ -202,7 +202,18 @@ export default function DuckRacePage({
    * Show Telegram popup when a winner is declared.
    */
   const showTelegramPopup = (message: string): void => {
-    window?.Telegram?.WebApp?.showPopup?.({ message });
+    if (
+      typeof window !== 'undefined' &&
+      window.Telegram &&
+      window.Telegram.WebApp &&
+      typeof window.Telegram.WebApp.showPopup === 'function'
+    ) {
+      try {
+        window.Telegram.WebApp.showPopup({ message });
+      } catch (e) {
+        // Silently ignore if not supported
+      }
+    }
   };
 
   useEffect(() => {
