@@ -1,0 +1,83 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+/// Participant in a duck race raffle
+model Participant {
+  id           String            @id @default(uuid())
+  name         String
+  avatar       String? // Emoji or image URL
+  telegramId   String?           @unique // Optional, for Telegram users
+  joinedAt     DateTime          @default(now())
+  races        RaceParticipant[]
+  // Races where this participant is the winner
+  winnerRaces  Race[]            @relation("RaceWinner")
+  // Results for this participant
+  results      Result[]
+  // Chat messages sent by this participant
+  chatMessages RaceChatMessage[]
+}
+
+/// A single duck race event
+model Race {
+  id           String            @id @default(uuid())
+  createdAt    DateTime          @default(now())
+  startedAt    DateTime?
+  endedAt      DateTime?
+  participants RaceParticipant[]
+  winnerId     String? // Participant ID
+  winner       Participant?      @relation("RaceWinner", fields: [winnerId], references: [id])
+  results      Result[]
+  prizePool    Int               @default(100) // Prize pool for this race (e.g., XP)
+  chatMessages RaceChatMessage[]
+}
+
+/// Join table for many-to-many Race <-> Participant
+model RaceParticipant {
+  id            String      @id @default(uuid())
+  race          Race        @relation(fields: [raceId], references: [id])
+  raceId        String
+  participant   Participant @relation(fields: [participantId], references: [id])
+  participantId String
+  joinedAt      DateTime    @default(now())
+
+  @@unique([raceId, participantId])
+}
+
+/// Result of a race (for leaderboard, history)
+model Result {
+  id            String      @id @default(uuid())
+  race          Race        @relation(fields: [raceId], references: [id])
+  raceId        String
+  participant   Participant @relation(fields: [participantId], references: [id])
+  participantId String
+  place         Int // 1 = winner, 2 = second, etc.
+  finishedAt    DateTime    @default(now())
+
+  @@unique([raceId, participantId])
+  @@index([participantId])
+}
+
+model RaceChatMessage {
+  id            String      @id @default(uuid())
+  race          Race        @relation(fields: [raceId], references: [id])
+  raceId        String
+  participant   Participant @relation(fields: [participantId], references: [id])
+  participantId String
+  name          String
+  avatar        String? // Emoji or URL
+  message       String
+  createdAt     DateTime    @default(now())
+
+  @@index([raceId])
+  @@index([participantId])
+}
