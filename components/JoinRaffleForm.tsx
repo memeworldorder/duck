@@ -47,6 +47,7 @@ const JoinRaffleForm: React.FC<JoinRaffleFormProps> = ({ onJoinSuccess }) => {
       if (data.duckNumber) {
         setDuckNumber(data.duckNumber);
         localStorage.setItem('duck_user_name', name);
+        localStorage.setItem('duck_has_joined', 'true');
         if (onJoinSuccess) onJoinSuccess();
       } else {
         setError(data.error || 'Failed to join raffle');

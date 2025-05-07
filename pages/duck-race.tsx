@@ -222,6 +222,34 @@ export default function DuckRacePage({
     }
   }, [winner, racing]);
 
+  // Poll /api/admin-raffles: fetch once on mount, then every 2 seconds
+  useEffect(() => {
+    const poll = async () => {
+      try {
+        const res = await fetch('/api/admin-raffles');
+        const raffles = await res.json();
+        if (Array.isArray(raffles) && raffles.length > 0) {
+          const current = raffles.find((r: any) => !r.finishedAt);
+          if (current) {
+            setBackendParticipants(current.participants.map((p: any) => p.name));
+            if (current.winnerDuckNumber) {
+              setBackendWinner(current.winnerDuckNumber);
+              setRaceFinished(true);
+            } else {
+              setBackendWinner(null);
+              setRaceFinished(false);
+            }
+          }
+        }
+      } catch (e) {
+        console.error('Error polling /api/admin-raffles', e);
+      }
+    };
+    poll();
+    const interval = setInterval(poll, 2000);
+    return () => clearInterval(interval);
+  }, []);
+
   // Identify current web user (by localStorage ID)
   let currentUserId = '';
   let currentUserName = '';
@@ -230,12 +258,8 @@ export default function DuckRacePage({
     currentUserName = localStorage.getItem('duck_user_name') || '';
   }
 
-  // Show join form if user is not a participant and hasn't just joined
-  const isCurrentUserParticipant = backendParticipants.some(
-    (nameOrId) => nameOrId === currentUserId || nameOrId === ''
-  );
-
-  if (!isCurrentUserParticipant && !hasJoined) {
+  // Show join form if user has not joined
+  if (!hasJoined) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-blue-900 to-blue-950 text-white">
         <h1 className="text-2xl font-bold mb-4">Duck Race</h1>
@@ -277,34 +301,6 @@ export default function DuckRacePage({
       </div>
     );
   }
-
-  // Poll backend for current raffle status after joining
-  useEffect(() => {
-    if (!isCurrentUserParticipant) return;
-    let interval: NodeJS.Timeout;
-    const poll = async () => {
-      try {
-        const res = await fetch('/api/admin-raffles');
-        const raffles = await res.json();
-        if (Array.isArray(raffles) && raffles.length > 0) {
-          const current = raffles.find((r: any) => !r.finishedAt);
-          if (current) {
-            setBackendParticipants(current.participants.map((p: any) => p.name));
-            if (current.winnerDuckNumber) {
-              setBackendWinner(current.winnerDuckNumber);
-              setRaceFinished(true);
-            } else {
-              setBackendWinner(null);
-              setRaceFinished(false);
-            }
-          }
-        }
-      } catch {}
-    };
-    poll();
-    interval = setInterval(poll, 2000);
-    return () => clearInterval(interval);
-  }, [isCurrentUserParticipant]);
 
   // When race finishes, trigger animation with backend winner
   useEffect(() => {
