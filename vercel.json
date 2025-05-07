@@ -4,7 +4,5 @@
     { "src": "next.config.js", "use": "@vercel/next" }
   ],
   "env": {
-    "DATABASE_URL": "@database_url",
-    "ADMIN_PASSWORD": "@admin_password"
   }
 } 

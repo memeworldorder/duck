@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { DuckRaceCard } from './duck-race';
 import Leaderboard from '../components/Leaderboard';
 import UpcomingRaces from '../components/UpcomingRaces';
 import PrizePools from '../components/PrizePools';
+import { useRouter } from 'next/router';
 
 const games = [
   {
@@ -33,23 +34,10 @@ const games = [
  * Dashboard - Main landing page for the Duck Race app.
  * Shows game cards, leaderboard, upcoming races, and prize pools.
  */
-export default function Dashboard() {
-  return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-950 to-blue-900 text-white p-8">
-      <header className="mb-10 flex flex-col items-center">
-        <h1 className="text-4xl font-bold mb-2">MWOR Arcade Dashboard</h1>
-        <p className="text-lg text-blue-200">Choose a game to play and earn XP!</p>
-      </header>
-      <section className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl mx-auto mb-10">
-        {games.map((g) => (
-          <div key={g.key}>{g.card}</div>
-        ))}
-      </section>
-      <section className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-        <Leaderboard />
-        <UpcomingRaces />
-        <PrizePools />
-      </section>
-    </main>
-  );
+export default function Home() {
+  const router = useRouter();
+  useEffect(() => {
+    router.replace('/duck-race');
+  }, [router]);
+  return null;
 } 
